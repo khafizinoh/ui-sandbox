@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" x-data="app">
+    <head>
+       	<!-- Metadata -->
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="theme-color" content="#ffffff">
+        <meta name="robots" content="noindex">
+        <!-- END Metadata -->
+        <!-- Prevent FOUC -->
+        <script>
+            // Toggle theme.
+            // localStorage.theme = 'dark';
+            document.documentElement.classList.toggle('dark', localStorage.theme === 'dark' || (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches) || (localStorage.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches));
+        </script>
+        <!-- END Prevent FOUC -->
+        <!-- Style-->
+        <link rel="preload" href="/assets/css/app.css" as="style">
+        <link rel="stylesheet" href="/assets/css/app.css">
+        <!-- END Style -->
+        <!-- Script -->
+        <link rel="preload" href="/assets/js/app.ts" as="script">
+        <script src="/assets/js/app.ts" type="module" defer></script>
+        <!-- END Script -->
+		<title>UI Sandbox</title>
+	</head>
+    <body class="relative bg-white dark:bg-neutral-950 min-h-dvh antialiased">
+        <!-- Content -->
+        <main class="mx-auto px-4 sm:px-8 py-16 w-full max-w-screen-xl">  
+            <div class="space-y-4 pt-32 max-w-screen-sm">
+                
+                <!-- Autocomplete Component -->
+                <div class="relative w-full sapce-y-1"
+                    x-data="{
+                        query: '',
+                        isOpen: false,
+                        selectedIndex: -1,
+                        allOptions: [
+                            'Apple',
+                            'Banana',
+                            'Cherry',
+                            'Date',
+                            'Elderberry',
+                            'Fig',
+                            'Grape',
+                            'Honeydew',
+                            'Kiwi',
+                            'Lemon',
+                            'Mango',
+                            'Orange',
+                            'Papaya',
+                            'Peach',
+                            'Pear',
+                            'Pineapple',
+                            'Raspberry',
+                            'Strawberry',
+                            'Watermelon'
+                        ],
+                        get filteredOptions() {
+                            if (!this.query) return [];
+                            
+                            const filtered = this.allOptions.filter(option => 
+                                option.toLowerCase().includes(this.query.toLowerCase())
+                            );
+                            
+                            return filtered.slice(0, 5);
+                        },
+                        selectOption(option) {
+                            this.query = option;
+                            this.isOpen = false;
+                            this.selectedIndex = -1;
+                        },
+                        handleKeydown(e) {
+                            if (!this.isOpen || this.filteredOptions.length === 0) return;
+                            
+                            if (e.key === 'ArrowDown') {
+                                e.preventDefault();
+                                this.selectedIndex = Math.min(this.selectedIndex + 1, this.filteredOptions.length - 1);
+                            } else if (e.key === 'ArrowUp') {
+                                e.preventDefault();
+                                this.selectedIndex = Math.max(this.selectedIndex - 1, -1);
+                            } else if (e.key === 'Enter' && this.selectedIndex >= 0) {
+                                e.preventDefault();
+                                this.selectOption(this.filteredOptions[this.selectedIndex]);
+                            }
+                        },
+                        handleInput() {
+                            this.isOpen = this.query.length > 0;
+                            this.selectedIndex = -1;
+                        }
+                    }"
+                    x-on:click.outside="isOpen = false"
+                    x-on:keydown.escape.window="isOpen = false"
+                >
+                    <label for="autocomplete-input" class="block text-neutral-800 dark:text-neutral-200 text-sm">Search Fruits</label>
+
+
+                    <div class="relative">
+                        <input id="autocomplete-input" type="text" class="inset-ring inset-ring-neutral-400 dark:inset-ring-neutral-600 bg-transparent disabled:opacity-60 px-3 py-2 rounded w-full text-neutral-800 dark:text-neutral-200 text-sm appearance-none cursor-text disabled:pointer-events-none" autocomplete="off" aria-autocomplete="list" aria-controls="autocomplete-dropdown" placeholder="Type to search..."
+                            x-model="query"
+                            x-on:input="handleInput"
+                            x-on:keydown="handleKeydown"
+                            x-on:focus="isOpen = query.length > 0"
+                            :aria-expanded="isOpen && filteredOptions.length > 0"
+                        />
+
+                        <!-- Autocomplete Dropdown -->
+                        <div
+                            id="autocomplete-dropdown"
+                            x-show="isOpen && filteredOptions.length > 0"
+                            class="left-0 z-10 absolute bg-white dark:bg-neutral-950 mt-1 border border-neutral-200 dark:border-neutral-800 rounded w-full"
+                            role="listbox"
+                            x-cloak
+                        >
+                            <ul class="space-y-1 p-1 leading-0">
+                                <template x-for="(option, index) in filteredOptions" :key="option">
+                                    <div
+                                        x-on:click="selectOption(option)"
+                                        class="inline-block hover:bg-neutral-100 dark:hover:bg-neutral-800 px-3 py-2 rounded w-full font-medium text-black dark:text-white text-sm text-left cursor-pointer"
+                                        role="option"
+                                    >
+                                        <span x-text="option"></span>
+                                    </div>
+                                </template>
+                            </ul>
+                        </div>
+                        <!-- END Autocomplete Dropdown -->
+                        
+                        <!-- No Results Message -->
+                        <div
+                            x-show="isOpen && query && filteredOptions.length === 0"
+                            class="z-10 absolute bg-white dark:bg-neutral-900 mt-1 px-4 py-3 border border-neutral-200 dark:border-neutral-800 rounded w-full"
+                            x-cloak
+                        >
+                            <p class="text-black dark:text-white text-sm text-left">No results found</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- END Autocomplete Component -->
+
+                <div class="mt-16">
+                    <a href="/index.html" class="[&_svg]:stroke-neutral-500 hover:[&_svg]:stroke-black focus:[&_svg]:stroke-black visited:[&_svg]:stroke-neutral-700 dark:[&_svg]:stroke-neutral-400 dark:hover:[&_svg]:stroke-white dark:focus:[&_svg]:stroke-white dark:visited:[&_svg]:stroke-neutral-200 font-medium text-neutral-500 hover:text-black focus:text-black visited:text-neutral-700 dark:hover:text-white dark:focus:text-white dark:text-neutral-400 dark:visited:text-neutral-200 text-sm cursor-pointer">Back</a>
+                </div>
+            </div>
+        </main>
+        <!-- END Content -->
+	</body>
+</html>
