@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" x-data="app">
+    <head>
+       	<!-- Metadata -->
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="theme-color" content="#ffffff">
+        <meta name="robots" content="noindex">
+        <!-- END Metadata -->
+        <!-- Prevent FOUC -->
+        <script>
+            // Toggle theme.
+            // localStorage.theme = 'dark';
+            document.documentElement.classList.toggle('dark', localStorage.theme === 'dark' || (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches) || (localStorage.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches));
+        </script>
+        <!-- END Prevent FOUC -->
+        <!-- Style-->
+        <link rel="preload" href="/assets/css/app.css" as="style">
+        <link rel="stylesheet" href="/assets/css/app.css">
+        <!-- END Style -->
+        <!-- Script -->
+        <link rel="preload" href="/assets/js/app.ts" as="script">
+        <script src="/assets/js/app.ts" type="module" defer></script>
+        <!-- END Script -->
+		<title>UI Sandbox</title>
+	</head>
+    <body class="relative bg-white dark:bg-neutral-950 min-h-dvh antialiased">
+        <!-- Content -->
+        <main class="mx-auto px-4 sm:px-8 py-16 w-full max-w-screen-xl">  
+            <div class="space-y-8 pt-32 max-w-screen-sm">
+                <!-- Drag and Drop Zone -->
+                <div class="space-y-4" 
+                    x-data="{
+                        items: [
+                            { id: 1, name: 'Document.pdf', type: 'PDF' },
+                            { id: 2, name: 'Image.jpg', type: 'Image' },
+                            { id: 3, name: 'Archive.zip', type: 'Archive' }
+                        ],
+                        draggedId: null,
+                        dragoverZone: false,
+                        dragItem(id) {
+                            this.draggedId = id;
+                        },
+                        dragoverZoneEnter() {
+                            this.dragoverZone = true;
+                        },
+                        dragoverZoneLeave() {
+                            this.dragoverZone = false;
+                        },
+                        dropZone(e) {
+                            this.dragoverZone = false;
+                            // Handle file drop
+                            const files = e.dataTransfer?.files;
+                            if (files && files.length > 0) {
+                                for (let file of files) {
+                                    this.items.push({
+                                        id: Date.now() + Math.random(),
+                                        name: file.name,
+                                        type: file.type || 'File'
+                                    });
+                                }
+                            }
+                        },
+                        dropItem(id) {
+                            if (this.draggedId === null || this.draggedId === id) {
+                                this.draggedId = null;
+                                return;
+                            }
+                            const draggedIndex = this.items.findIndex(item => item.id === this.draggedId);
+                            const targetIndex = this.items.findIndex(item => item.id === id);
+                            if (draggedIndex !== -1 && targetIndex !== -1) {
+                                [this.items[draggedIndex], this.items[targetIndex]] = [this.items[targetIndex], this.items[draggedIndex]];
+                            }
+                            this.draggedId = null;
+                        },
+                        removeItem(id) {
+                            this.items = this.items.filter(item => item.id !== id);
+                        }
+                    }"
+                >
+                    <!-- Title -->
+                    <div>
+                        <p class="font-medium text-neutral-800 dark:text-neutral-200 text-lg">Drag and Drop</p>
+                    </div>
+                    <!-- END Title -->
+                    
+                    <!-- Drop Zone -->
+                    <div class="p-8 border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-900 transition-colors cursor-pointer"
+                        @dragover.prevent="dragoverZoneEnter()"
+                        @dragleave="dragoverZoneLeave()"
+                        @drop.prevent="dropZone($event)"
+                        :class="dragoverZone ? 'border-blue-500 bg-blue-50 dark:bg-blue-950' : ''"
+                    >
+                        <div class="text-center space-y-2">
+                            <div class="[&_svg]:w-8 [&_svg]:h-8 [&_svg]:stroke-neutral-500 dark:[&_svg]:stroke-neutral-400 flex justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 18c-1.1 0 -2 -.9 -2 -2v-4c0 -1 .9 -2 2 -2h5l4 -4h2v7h3c1 0 2 .9 2 2v4c0 1.1 -.9 2 -2 2h-12z"/><path d="M9 13a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/></svg>
+                            </div>
+                            <p class="font-medium text-neutral-800 dark:text-neutral-200 text-sm">Drag files here or click to upload</p>
+                            <p class="text-neutral-500 dark:text-neutral-400 text-xs">You can also drag items below to reorder them</p>
+                        </div>
+                    </div>
+                    <!-- END Drop Zone -->
+                    
+                    <!-- Items List -->
+                    <div class="space-y-2">
+                        <template x-for="item in items" :key="item.id">
+                            <div class="flex items-center gap-3 p-3 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded cursor-move transition-opacity"
+                                draggable="true"
+                                @dragstart="dragItem(item.id)"
+                                @dragover.prevent
+                                @drop.prevent="dropItem(item.id)"
+                                @dragenter="draggedId === item.id ? null : $el.classList.add('opacity-50')"
+                                @dragleave="$el.classList.remove('opacity-50')"
+                                :class="draggedId === item.id ? 'opacity-50' : ''"
+                            >
+                                <!-- Drag Handle -->
+                                <div class="[&_svg]:w-5 [&_svg]:h-5 [&_svg]:stroke-neutral-500 dark:[&_svg]:stroke-neutral-400 flex-shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+                                </div>
+                                <!-- END Drag Handle -->
+                                
+                                <!-- Item Info -->
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium text-neutral-800 dark:text-neutral-200 text-sm truncate" x-text="item.name"></p>
+                                    <p class="text-neutral-500 dark:text-neutral-400 text-xs" x-text="item.type"></p>
+                                </div>
+                                <!-- END Item Info -->
+                                
+                                <!-- Remove Button -->
+                                <button type="button" class="flex-shrink-0 hover:bg-neutral-200 focus:bg-neutral-200 dark:hover:bg-neutral-700 dark:focus:bg-neutral-700 [&_svg]:stroke-neutral-500 dark:[&_svg]:stroke-neutral-400 p-1 rounded transition-colors"
+                                    @click="removeItem(item.id)"
+                                    :aria-label="'Remove ' + item.name"
+                                >
+                                    <span class="[&_svg]:w-5 [&_svg]:h-5">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+                                    </span>
+                                </button>
+                                <!-- END Remove Button -->
+                            </div>
+                        </template>
+                    </div>
+                    <!-- END Items List -->
+                    
+                    <!-- Empty State -->
+                    <div x-show="items.length === 0" class="text-center p-8 text-neutral-500 dark:text-neutral-400">
+                        <p class="text-sm">No items yet. Drag files to the drop zone above.</p>
+                    </div>
+                    <!-- END Empty State -->
+                </div>
+                <!-- END Drag and Drop Zone -->
+            </div>
+        </main>
+    </body>
+</html>

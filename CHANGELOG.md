@@ -21,6 +21,9 @@ Put unreleased changes here.
 - VanillaJS components.
 - Tooltip component.
 - Documentation layouts.
+- Auto complete components.
+- Input password components.
+- Drag and Drop component.
 - Blog layouts.
 - Added icon to nav title.
 - Button link element.
@@ -41,6 +44,8 @@ Put unreleased changes here.
 - Update link style to support `stroke-*` for icons.
 - Move `dark:` classes to front.
 - Revise link to include svg classes.
+- Revise dashboard content layout.
+- Revise input password ui sizing.
 
 ### Removed
 - Button outline background colour when hovered.
